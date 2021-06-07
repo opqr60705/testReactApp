@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        table {
+            width: 1000px;
+        }
+
+        th,
+        .tdSmall {
+            width: fit-content;
+        }
+
+        .tdBig {
+            width: 300px;
+        }
+
+        tr:nth-of-type(odd) td{
+            background-color: rgb(236, 236, 236);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script type="text/babel">
+        let newArr = [];
+        class Header extends React.Component {
+            constructor(props) {
+                super(props);
+                // state狀態
+                this.state = {
+
+                };
+            }
+            render() {
+                return (
+                    <React.Fragment>
+                        <h1>Hacker News Rest API</h1>,
+                        <input type="search" name="searchInput" id="searchInput" />,
+                        <input type="submit" className="rounded mb-3" value="Search" />,
+                    </React.Fragment>
+                )
+            }
+        }
+        class MyComponent extends React.Component {
+
+            // 輸出入的值
+            constructor(props) {
+                // 要有super才會顯示
+                super(props);
+                // state狀態
+                this.state = {
+                    list: 'Start',
+                };
+            }
+            componentDidMount() {
+                $.get('https://hn.algolia.com/api/v1/search?query=', (res) => {
+                    let dataObj = res.hits;
+                    // console.log(dataObj);
+                    // let newArr = [];
+                    for (let i = 0; i < dataObj.length; i++) {
+                        newArr.push({
+                            id: dataObj[i].objectID,
+                            author: dataObj[i].author,
+                            comments: dataObj[i].num_comments,
+                            title: dataObj[i].title,
+                            url: dataObj[i].url
+                        })
+                    }
+                    // console.log(newArr);
+                    this.setState({
+                        list: newArr
+                    })
+                })
+            }
+            handleDelete = (index) => {
+                this.state.list.splice(index, 1);
+                this.setState({});
+            }
+            handleLoadMore = () => {
+                $(`tr[class='d-none']`).removeClass('d-none');
+                this.setState({});
+            }
+            render() {
+                // console.log(newArr);
+                return (
+                    <React.Fragment>
+                        <div>
+                            <table className="container">
+                                <thead className="bg-primary text-white">
+                                    <tr>
+                                        <th className="pl-2 tdSmall">ID</th>
+                                        <th className="pl-1 tdSmall">Author</th>
+                                        <th className="pl-1 tdSmall">Comments</th>
+                                        <th className="pl-1 tdBig">TiTle</th>
+                                        <th className="pl-1 tdBig">URL</th>
+                                        <th className="pl-1 tdSmall">Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        newArr.map((item, index) => {
+                                            newArr[index].idx = index
+                                            if ((index) <= 9) {
+                                                return (
+                                                    <tr key={index}>
+                                                        <td className="text-break tdSmall">{item.id}</td>
+                                                        <td className="text-break tdSmall">{item.author}</td>
+                                                        <td className="text-break tdSmall">{item.comments}</td>
+                                                        <td className="text-break tdBig">{item.title}</td>
+                                                        <td className="text-break tdBig">{item.url}</td>
+                                                        <td className="tdSmall"><button className="rounded" onClick={() => { this.handleDelete(index) }}>Remove</button></td>
+                                                    </tr>
+                                                )
+                                            }
+                                            if ((index) >= 10) {
+                                                return (
+                                                    <tr key={index} className="d-none">
+                                                        <td className="text-break">{item.id}</td>
+                                                        <td className="text-break">{item.author}</td>
+                                                        <td className="text-break">{item.comments}</td>
+                                                        <td className="text-break">{item.title}</td>
+                                                        <td className="text-break">{item.url}</td>
+                                                        <td className=""><button className="rounded" onClick={() => { this.handleDelete(index) }}>Remove</button></td>
+                                                    </tr>
+                                                )
+                                            }
+                                        })
+                                    }
+                                </tbody>
+                            </table >
+                            <div className="text-center">
+                                <button className="rounded" onClick={() => { this.handleLoadMore() }}>Load more</button>
+                            </div>
+                        </div>
+                    </React.Fragment>
+                );
+            };
+        }
+        ReactDOM.render(
+            <div className="container">
+                <Header />
+                <MyComponent />
+            </div>,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+
+</html>
